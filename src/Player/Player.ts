@@ -3,22 +3,15 @@ import type { KeyboardControls } from "../Controls/Keyboard/KeyboardControls";
 import type { MouseControls } from "../Controls/Keyboard/MouseControls";
 
 export class Player {
-  // ───── Position & Movement ─────
-  position = { x: 50, y: 50, z: 0 };
-  velocity = { z: 0};
-  direction = { x: 0, y: 0 };
-
-  // ───── Physics ─────
+  position = { x: 300, y: 200, z: 5 };
+  velocity = { x: 0, y: 0, z: 0};
   speed = 3;
   gravity = -0.4;
   throwStrength = 6;
-
-  // ───── Appearance ─────
+  holdingBallHeight = 5;
   radius = 14;
   size = 20;
-
-  // ───── State ─────
-  isHoldingBall = false;
+  isHoldingBall = true;
   isJumping = false;
 
   constructor() {}
@@ -39,9 +32,13 @@ export class Player {
     }
 
     if (this.isHoldingBall) {
-      ball.position.x = this.position.x;
+      ball.position.x = this.position.x + 15;
       ball.position.y = this.position.y;
-      ball.position.z = this.position.z;
+
+      if (ball.position.z <= this.holdingBallHeight && !this.isJumping) {
+        ball.position.z = this.holdingBallHeight;
+        ball.velocity.z = 2;
+      }
     }
 
     let dx = 0;
@@ -53,14 +50,19 @@ export class Player {
     if (input.isPressed("d")) dx += 1;
 
     if (dx !== 0 || dy !== 0) {
-      const distSq = dx * dx + dy * dy;
+      const len = Math.hypot(dx, dy);
+      dx /= len;
+      dy /= len;
 
-      this.direction.x = dx / distSq;
-      this.direction.y = dy / distSq;
+      this.velocity.x = dx * this.speed;
+      this.velocity.y = dy * this.speed;
+    } else {
+      this.velocity.x = 0;
+      this.velocity.y = 0;
     }
 
-    this.position.x += dx * this.speed;
-    this.position.y += dy * this.speed;
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
 
     if (input.isPressed(" ") && !this.isJumping) {
       this.isJumping = true;
@@ -70,6 +72,12 @@ export class Player {
     if (this.isJumping) {
       this.position.z += this.velocity.z;
       this.velocity.z += this.gravity;
+
+      if (this.isHoldingBall) {
+        ball.position.x = this.position.x + 5;
+        ball.position.y = this.position.y - 15;
+        ball.position.z = this.position.z;
+      }
 
       if (this.position.z <= 0) {
         this.position.z = 0;
@@ -110,8 +118,8 @@ export class Player {
 
     const aim = { x: dx / dist, y: dy / dist };
 
-    ball.velocity.x = this.direction.x + aim.x * this.throwStrength;
-    ball.velocity.y = this.direction.y + aim.y * this.throwStrength;
-    ball.velocity.z = 5;
+    ball.velocity.x = aim.x * this.throwStrength;
+    ball.velocity.y = aim.y * this.throwStrength;
+    ball.velocity.z = 6;
   }
 }

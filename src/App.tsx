@@ -15,7 +15,9 @@ export default function App() {
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     if (!ctx) return;
 
-    const hoop   = new Hoop();
+    const hoop   = new Hoop(300, 40, 18);
+    const hoop2  = new Hoop(300, 460, -28);
+
     const ball   = new Ball();
     const player = new Player();
     const input  = new KeyboardControls();
@@ -27,14 +29,24 @@ export default function App() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       hoop.draw(ctx);
+      hoop2.draw(ctx);
+
+      if (player.isHoldingBall && !player.isJumping) {
+        ball.draw(ctx, "orange");
+        player.draw(ctx, "blue");
+      } else {
+        player.draw(ctx, "blue");
+        ball.draw(ctx, "orange");
+      }
 
       player.update(input, ball);
-      player.draw(ctx, "blue");
-
       ball.update();
-      ball.draw(ctx, "red");
+
+      ball.checkBackboardCollision(hoop);
+      ball.checkBackboardCollision(hoop2);
 
       ball.checkBasket(hoop);
+      ball.checkBasket(hoop2);
 
       animationId = requestAnimationFrame(loop);
     }
@@ -51,7 +63,7 @@ export default function App() {
     <canvas
       ref={canvasRef}
       width={600}
-      height={400}
+      height={500}
       style={{ border: "1px solid black" }}
     />
   );
