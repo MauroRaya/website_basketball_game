@@ -19,7 +19,7 @@ export class Player implements ICircle, IPosition {
   constructor() {
     this.x = 50;
     this.y = 50;
-    this.radius = 12;
+    this.radius = 14;
     this.size = 20;
     this.speed = 3;
     this.isHoldingBall = false;

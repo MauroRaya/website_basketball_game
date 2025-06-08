@@ -50,6 +50,16 @@ export class Ball implements ICircle, IPosition {
   }
 
   draw(ctx: CanvasRenderingContext2D, color: string) {
+    const shadowAlpha = Math.max(0.2, 1 - this.z / 20);
+    const shadowRadius = Math.max(0, this.radius * (1 - this.z / 180));
+
+    if (this.z !== 0) {
+      ctx.beginPath();
+      ctx.ellipse(this.x, this.y, shadowRadius, shadowRadius * 0.5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})`;
+      ctx.fill();
+    }
+
     const screenY = this.y - this.z;
     ctx.beginPath();
     ctx.arc(this.x, screenY, 10, 0, Math.PI * 2);

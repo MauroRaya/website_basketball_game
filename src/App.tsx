@@ -3,6 +3,7 @@ import { KeyboardControls } from "./Controls/Keyboard/KeyboardControls";
 import { Player } from "./Player/Player";
 import { Ball } from "./Ball/Ball";
 import { MouseControls } from "./Controls/Keyboard/MouseControls";
+import { Hoop } from "./Hoop/Hoop";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -14,6 +15,7 @@ export default function App() {
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     if (!ctx) return;
 
+    const hoop   = new Hoop();
     const ball   = new Ball();
     const player = new Player();
     const input  = new KeyboardControls();
@@ -23,6 +25,8 @@ export default function App() {
 
     const loop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      hoop.draw(ctx);
 
       player.update(input, ball);
       player.draw(ctx, "blue");
