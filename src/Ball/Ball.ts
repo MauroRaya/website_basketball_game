@@ -2,7 +2,7 @@ import type { Hoop } from "../Hoop/Hoop";
 
 export class Ball {
   // ─── Position & Motion ───
-  position = { x: 100, y: 200, z: 0 };
+  position = { x: 100, y: 200, z: 0, prevZ: 0 };
   velocity = { x: 0, y: 0, z: 0 };
 
   // ─── Physics ───
@@ -19,6 +19,8 @@ export class Ball {
   constructor() {}
 
   update() {
+    this.position.prevZ = this.position.z;
+
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
     this.position.z += this.velocity.z;
@@ -69,12 +71,12 @@ export class Ball {
     const innerRadiusSq = hoop.innerRadius * hoop.innerRadius;
     const outerRadiusSq = hoop.outerRadius * hoop.outerRadius;
 
-    const isNearZ = Math.abs(this.position.z - hoop.position.z) < 2;
+    const justPassedHoopHeight = this.position.prevZ > hoop.position.z && this.position.z <= hoop.position.z;
     const isFalling = this.velocity.z < 0;
 
-    if (distSq < innerRadiusSq && isNearZ && isFalling) {
+    if (distSq < innerRadiusSq && justPassedHoopHeight && isFalling) {
       console.log("✅ BASKET");
-    } else if (distSq <= outerRadiusSq && isNearZ && isFalling) {
+    } else if (distSq <= outerRadiusSq && justPassedHoopHeight && isFalling) {
       console.log("💥 RIM BOUNCE");
     }
   }
