@@ -2,8 +2,6 @@ import { useEffect, useRef } from "react"
 import { KeyboardControls } from "./Controls/Keyboard/KeyboardControls";
 import { Player } from "./Player/Player";
 import { Ball } from "./Ball/Ball";
-import { CollisionUtil } from "./Utils/Collision";
-import { DrawUtil } from "./Utils/Draw";
 import { MouseControls } from "./Controls/Keyboard/MouseControls";
 
 export default function App() {
@@ -16,28 +14,21 @@ export default function App() {
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     if (!ctx) return;
 
-    const input  = new KeyboardControls();
-    const mouse  = new MouseControls(canvas);
-    const player = new Player();
     const ball   = new Ball();
+    const player = new Player();
+    const input  = new KeyboardControls();
+    const mouse  = new MouseControls(canvas, player, ball);
 
     let animationId: number;
 
     const loop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      player.update(input);
-      DrawUtil.drawCircle(ctx, player, "blue");
-      DrawUtil.drawCircle(ctx, mouse, "green");
-      DrawUtil.drawDirectionLine(ctx, player, mouse);
+      player.update(input, ball);
+      player.draw(ctx, "blue");
 
-      const isPlayerTouchingBall = CollisionUtil.isCollidingCircle(player, ball);
-
-      if (isPlayerTouchingBall) {
-        ball.hold(player);
-      }
-
-      DrawUtil.drawCircle(ctx, ball, "red");
+      ball.update();
+      ball.draw(ctx, "red");
 
       animationId = requestAnimationFrame(loop);
     }

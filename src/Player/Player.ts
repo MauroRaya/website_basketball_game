@@ -1,14 +1,19 @@
+import type { Ball } from "../Ball/Ball";
 import type { KeyboardControls } from "../Controls/Keyboard/KeyboardControls";
+import type { MouseControls } from "../Controls/Keyboard/MouseControls";
 import type { ICircle } from "../Interfaces/ICircle";
-import type { IDirection } from "../Interfaces/IDirection";
 import type { IPosition } from "../Interfaces/IPosition";
+import type { IVector } from "../Interfaces/IVector";
+import { CollisionUtil } from "../Utils/CollisionUtil";
+import { VectorUtil } from "../Utils/VectorUtil";
 
-export class Player implements IPosition, ICircle, IDirection {
+export class Player implements ICircle, IPosition {
   x: number;
   y: number;
   radius: number;
   size: number;
   speed: number;
+  isHoldingBall: boolean;
   direction = { x: 0, y: 0 };
 
   constructor() {
@@ -17,9 +22,25 @@ export class Player implements IPosition, ICircle, IDirection {
     this.radius = 12;
     this.size = 20;
     this.speed = 3;
+    this.isHoldingBall = false;
   }
 
-  update(input: KeyboardControls) {
+  update(input: KeyboardControls, ball: Ball) {
+    if (
+        CollisionUtil.isCollidingCircle(this, ball) &&
+        !this.isHoldingBall &&
+        !ball.isHeld &&
+        !ball.inMidShot
+    ) {
+      this.isHoldingBall = true;
+      ball.isHeld = false;
+    }
+
+    if (this.isHoldingBall) {
+      ball.x = this.x;
+      ball.y = this.y;
+    }
+
     let dx = 0;
     let dy = 0;
 
@@ -36,5 +57,26 @@ export class Player implements IPosition, ICircle, IDirection {
 
     this.x += dx * this.speed;
     this.y += dy * this.speed;
+  }
+
+  draw(ctx: CanvasRenderingContext2D, color: string) {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  shoot(ball: Ball, mouse: MouseControls) {
+    if (!this.isHoldingBall) return;
+
+    this.isHoldingBall = false;
+    ball.isHeld = false;
+    ball.inMidShot = true;
+
+    const vector: IVector = VectorUtil.direction(this, mouse);
+
+    ball.vx = this.direction.x + vector.x * 6;
+    ball.vy = this.direction.y + vector.y * 6;
+    ball.vz = 5;
   }
 }
