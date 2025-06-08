@@ -19,7 +19,7 @@ export default function App() {
     const ball   = new Ball();
     const player = new Player();
     const input  = new KeyboardControls();
-    const mouse  = new MouseControls(canvas, player, ball);
+    new MouseControls(canvas, player, ball);
 
     let animationId: number;
 
@@ -33,6 +33,8 @@ export default function App() {
 
       ball.update();
       ball.draw(ctx, "red");
+
+      ball.checkBasket(hoop);
 
       animationId = requestAnimationFrame(loop);
     }

@@ -1,69 +1,81 @@
-import type { ICircle } from "../Interfaces/ICircle";
-import type { IPosition } from "../Interfaces/IPosition";
+import type { Hoop } from "../Hoop/Hoop";
 
-export class Ball implements ICircle, IPosition {
-  x: number;
-  y: number;
-  z: number;
-  vx: number;
-  vy: number;
-  vz: number;
-  gravity: number;
-  radius: number;
-  isHeld: boolean;
-  inMidShot: boolean;
+export class Ball {
+  // ─── Position & Motion ───
+  position = { x: 100, y: 200, z: 0 };
+  velocity = { x: 0, y: 0, z: 0 };
 
-  constructor() {
-    this.x = 200;
-    this.y = 200;
-    this.z = 5;
-    this.vx = 0;
-    this.vy = 0;
-    this.vz = 0;
-    this.gravity = -0.2;
-    this.radius = 6;
-    this.isHeld = false;
-    this.inMidShot = false;
-  }
+  // ─── Physics ───
+  gravity = -0.2;
+  friction = 0.98;
+  bounceDamping = 0.4;
+
+  // ─── Appearance ───
+  radius = 8;
+
+  // ─── State ───
+  inMidShot = false;
+
+  constructor() {}
 
   update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.z += this.vz;
-    this.vz += this.gravity;
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+    this.position.z += this.velocity.z;
 
-    this.vx *= 0.98;
-    this.vy *= 0.98;
+    this.velocity.z += this.gravity;
 
-    if (this.z < 0) {
-      this.inMidShot = false;
-      this.z = 0;
+    this.velocity.x *= this.friction;
+    this.velocity.y *= this.friction;
 
-      this.vz = -this.vz * 0.4;
+    if (this.position.z < 0) {
+      this.position.z = 0;
 
-      if (Math.abs(this.vz) < 0.35) {
-        this.vz = 0;
-        this.vx = 0;
-        this.vy = 0;
+      this.velocity.z = -this.velocity.z * this.bounceDamping;
+
+      if (Math.abs(this.velocity.z) < 0.3) {
+        this.inMidShot = false;
+        this.velocity.z = 0;
+        this.velocity.x = 0;
+        this.velocity.y = 0;
       }
     }
   }
 
   draw(ctx: CanvasRenderingContext2D, color: string) {
-    const shadowAlpha = Math.max(0.2, 1 - this.z / 20);
-    const shadowRadius = Math.max(0, this.radius * (1 - this.z / 180));
+    const shadowAlpha = Math.max(0.2, 1 - this.position.z / 20);
+    const shadowRadius = Math.max(0, this.radius * (1 - this.position.z / 180));
 
-    if (this.z !== 0) {
+    if (this.position.z !== 0) {
       ctx.beginPath();
-      ctx.ellipse(this.x, this.y, shadowRadius, shadowRadius * 0.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(this.position.x, this.position.y, shadowRadius, shadowRadius * 0.5, 0, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha.toFixed(2)})`;
       ctx.fill();
     }
 
-    const screenY = this.y - this.z;
+    const screenY = this.position.y - this.position.z;
+
     ctx.beginPath();
-    ctx.arc(this.x, screenY, 10, 0, Math.PI * 2);
+    ctx.arc(this.position.x, screenY, this.radius, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
+  }
+
+  checkBasket(hoop: Hoop) {
+    const dx = this.position.x - hoop.position.x;
+    const dy = this.position.y - hoop.position.y;
+    const distSq = dx * dx + dy * dy;
+
+    const innerRadiusSq = hoop.innerRadius * hoop.innerRadius;
+    const outerRadiusSq = hoop.outerRadius * hoop.outerRadius;
+
+    const isNearZ = Math.abs(this.position.z - hoop.position.z) < 2;
+    const isFalling = this.velocity.z < 0;
+
+    if (distSq < innerRadiusSq && isNearZ && isFalling) {
+      console.log("✅ BASKET");
+    } else if (distSq <= outerRadiusSq && isNearZ && isFalling) {
+      console.log("💥 RIM BOUNCE");
+    }
   }
 }
