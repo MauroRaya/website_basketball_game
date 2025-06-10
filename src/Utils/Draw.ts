@@ -22,6 +22,21 @@ export class Draw {
     ctx.fill();
   }
 
+  static halfCircle(
+    ctx: CanvasRenderingContext2D,
+    position: Vector,
+    radius: number,
+    startAngle: number,
+    finalAngle: number,
+    color: string
+  ) {
+    ctx.beginPath();
+    ctx.arc(position.x, position.y, radius, startAngle, finalAngle);
+    ctx.strokeStyle = color;
+    ctx.setLineDash([5, 4]);
+    ctx.stroke();
+  }
+
   static arrow(
     ctx: CanvasRenderingContext2D,
     from: Vector,
@@ -33,14 +48,5 @@ export class Draw {
     ctx.lineTo(to.x, to.y);
     ctx.strokeStyle = color;
     ctx.stroke();
-  }
-
-  static text(
-    ctx: CanvasRenderingContext2D,
-    loc: Vector,
-    text: string,
-  ) {
-    ctx.font = "36px calibri";
-    ctx.strokeText(text, loc.x, loc.y);
   }
 }

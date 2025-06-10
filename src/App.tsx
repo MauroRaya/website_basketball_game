@@ -11,7 +11,7 @@ export default function App() {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    const DEBUG = true;
+    const DEBUG = false;
     let animationId: number;
 
     const keyboard = new Keyboard();
@@ -22,6 +22,9 @@ export default function App() {
 
     const loop = () => {
       Utils.Draw.clear(ctx, canvas, "white");
+
+      Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: 0, z: 0 }, 225, 0, Math.PI, "blue");
+      Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: canvas.height, z: 0 }, 225, Math.PI, 0, "blue");
 
       Utils.Draw.circle(ctx, ball.getPosition(), ball.getRadius(), "red");
       Utils.Draw.circle(ctx, player.getPosition(), player.getRadius(), "blue");
@@ -50,7 +53,7 @@ export default function App() {
     <canvas
       ref={canvasRef}
       width={600}
-      height={500}
+      height={800}
       style={{ border: "1px solid black" }}
     />
   );
