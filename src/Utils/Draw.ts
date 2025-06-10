@@ -1,4 +1,4 @@
-import type { Vector } from "../Types/Vector";
+import type { Vector2D } from "../Types/Vector";
 
 export class Draw {
   static clear(
@@ -10,43 +10,20 @@ export class Draw {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  static circle(
-    ctx: CanvasRenderingContext2D,
-    position: Vector,
-    radius: number,
-    color: string
-  ) {
-    ctx.beginPath();
-    ctx.arc(position.x, position.y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-  }
-
   static halfCircle(
     ctx: CanvasRenderingContext2D,
-    position: Vector,
+    position: Vector2D,
     radius: number,
-    startAngle: number,
-    finalAngle: number,
+    angleFrom: number,
+    angleTo: number,
     color: string
   ) {
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(position.x, position.y, radius, startAngle, finalAngle);
+    ctx.arc(position.x, position.y, radius, angleFrom, angleTo);
     ctx.strokeStyle = color;
     ctx.setLineDash([5, 4]);
     ctx.stroke();
-  }
-
-  static arrow(
-    ctx: CanvasRenderingContext2D,
-    from: Vector,
-    to: Vector,
-    color: string
-  ) {
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.strokeStyle = color;
-    ctx.stroke();
+    ctx.restore();
   }
 }

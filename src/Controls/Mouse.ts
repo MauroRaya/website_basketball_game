@@ -1,7 +1,7 @@
-import type { Vector } from "../Types/Vector";
+import type { Vector2D } from "../Types/Vector";
 
 export class Mouse {
-  private position: Vector = { x: 0, y: 0, z: 0 };
+  private position: Vector2D = { x: 0, y: 0 };
 
   constructor(canvas: HTMLCanvasElement) {
     canvas.addEventListener("mousemove", this.mouseMove);
@@ -12,7 +12,7 @@ export class Mouse {
     this.position.y = e.y;
   }
 
-  getPosition(): Vector {
+  getPosition(): Vector2D {
     return {...this.position};
   }
 

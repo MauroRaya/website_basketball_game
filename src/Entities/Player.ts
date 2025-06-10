@@ -1,27 +1,28 @@
 import type { Keyboard } from "../Controls/Keyboard";
 import type { Mouse } from "../Controls/Mouse";
-import type { Vector } from "../Types/Vector";
+import type { Vector2D, Vector3D } from "../Types/Vector";
 import type { Ball } from "./Ball";
 
 export class Player {
-  private position: Vector;
-  private velocity: Vector;
-  private direction: Vector;
-  private radius: number;
+  private position: Vector3D;
+  private velocity: Vector3D = { x: 0, y: 0, z: 0 };
+  private direction: Vector2D = { x: 0, y: 0 };
   private hasBall: boolean = false;
-  
-  constructor(position: Vector, radius: number) {
+  private gravity: number = -0.3;
+  private radius: number;
+  private color: string;
+
+  constructor(position: Vector3D, radius: number, color: string) {
     this.position = position;
-    this.velocity = { x: 0, y: 0, z: 0 };
-    this.direction = { x: 0, y: 0, z: 0 };
     this.radius = radius;
+    this.color = color;
   }
 
-  getPosition(): Vector {
+  getPosition(): Vector3D {
     return {...this.position};
   }
 
-  getDirection(): Vector {
+  getDirection(): Vector2D {
     return {...this.direction};
   }
 
@@ -35,6 +36,7 @@ export class Player {
 
   update(keyboard: Keyboard, mouse: Mouse, ball: Ball) {
     this.handleIsTouchingBall(ball);
+    this.handleJump(keyboard);
     this.handleDirection(mouse);
     this.handleMovement(keyboard);
   }
@@ -47,7 +49,10 @@ export class Player {
     const dy = by - y;
     
     const mag = Math.hypot(dx, dy);
-    this.hasBall = mag < this.radius + ball.getRadius();
+
+    if (mag < this.radius + ball.getRadius()) {
+      this.hasBall = true;
+    }
   }
 
   private handleDirection(mouse: Mouse) {
@@ -60,8 +65,8 @@ export class Player {
     const mag = Math.hypot(dx, dy);
     if (mag === 0) return;
 
-    this.direction.x = x + (dx / mag * 20);
-    this.direction.y = y + (dy / mag * 20);
+    this.direction.x = dx / mag
+    this.direction.y = dy / mag;
   }
 
   private handleMovement(keyboard: Keyboard) {
@@ -69,5 +74,46 @@ export class Player {
     if (keyboard.isPressed("a")) this.position.x -= 3;
     if (keyboard.isPressed("s")) this.position.y += 3;
     if (keyboard.isPressed("d")) this.position.x += 3;
+  }
+
+  private handleJump(keyboard: Keyboard) {
+    if (keyboard.isPressed(" ") && this.position.z === 0) {
+      this.velocity.z = 6;
+
+      this.velocity.z += this.gravity;
+      this.position.z += this.velocity.z;
+    }
+    
+    if (this.position.z > 0) {
+      this.velocity.z += this.gravity;
+      this.position.z += this.velocity.z;
+    } else {
+      this.position.z = 0;
+      this.velocity.z = 0;
+    }
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    const { x, y, z } = this.position;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y - z, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.restore();
+
+    if (z === 0) return;
+
+    const scale = Math.max(0.4, 1 - y / 100);
+    const shadowRadiusX = this.radius * 0.8;
+    const shadowRadiusY = this.radius * scale;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(x, y, shadowRadiusX, shadowRadiusY, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    ctx.fill();
+    ctx.restore();
   }
 }
