@@ -1,62 +1,49 @@
 import { useEffect, useRef } from "react"
-import { KeyboardControls } from "./Controls/Keyboard/KeyboardControls";
-import { Player } from "./Player/Player";
-import { Ball } from "./Ball/Ball";
-import { MouseControls } from "./Controls/Keyboard/MouseControls";
-import { Hoop } from "./Hoop/Hoop";
-
+import * as Utils from "./Utils/Draw";
+import { Player } from "./Entities/Player";
+import { Mouse } from "./Controls/Mouse";
+import { Keyboard } from "./Controls/Keyboard";
+import { Ball } from "./Entities/Ball";
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
-    if (!canvas) return;
-
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    if (!ctx) return;
 
-    const hoop   = new Hoop(300, 40, 18);
-    const hoop2  = new Hoop(300, 460, -28);
-
-    const ball   = new Ball();
-    const player = new Player();
-    const input  = new KeyboardControls();
-    new MouseControls(canvas, player, ball);
-
+    const DEBUG = true;
     let animationId: number;
 
+    const keyboard = new Keyboard();
+    const mouse = new Mouse(canvas);
+
+    const player = new Player({ x: 300, y: 250, z: 0 }, 16);
+    const ball = new Ball({ x: 350, y: 250, z: 0 }, 12);
+
     const loop = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      Utils.Draw.clear(ctx, canvas, "white");
 
-      hoop.draw(ctx);
-      hoop2.draw(ctx);
+      Utils.Draw.circle(ctx, ball.getPosition(), ball.getRadius(), "red");
+      Utils.Draw.circle(ctx, player.getPosition(), player.getRadius(), "blue");
 
-      if (player.isHoldingBall && !player.isJumping) {
-        ball.draw(ctx, "orange");
-        player.draw(ctx, "blue");
-      } else {
-        player.draw(ctx, "blue");
-        ball.draw(ctx, "orange");
-      }
-
-      player.update(input, ball);
-      ball.update();
-
-      ball.checkBackboardCollision(hoop);
-      ball.checkBackboardCollision(hoop2);
-
-      ball.checkBasket(hoop);
-      ball.checkBasket(hoop2);
+      player.update(keyboard, mouse, ball);
+      ball.update(player);
 
       animationId = requestAnimationFrame(loop);
+
+      if (DEBUG) {
+        Utils.Draw.arrow(ctx, {x: 0, y: 0, z: 0}, player.getPosition(), "black");
+        Utils.Draw.arrow(ctx, player.getPosition(), player.getDirection(), "black");
+      }
     }
 
     loop();
 
-    return () => {
+    return(() => {
+      mouse.destroy(canvas);
+      keyboard.destroy();
       cancelAnimationFrame(animationId);
-      input.destroy();
-    }
+    })
   });
   
   return (

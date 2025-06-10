@@ -1,4 +1,4 @@
-export class KeyboardControls {
+export class Keyboard {
   private keys: Record<string, boolean> = {};
 
   constructor() {
@@ -14,8 +14,12 @@ export class KeyboardControls {
     this.keys[e.key.toLowerCase()] = false;
   }
 
-  isPressed(key: string) {
-    return !!this.keys[key.toLowerCase()];
+  getKeys(): Record<string, boolean> {
+    return {...this.keys};
+  }
+
+  isPressed(e: string): boolean {
+    return !!this.keys[e.toLowerCase()];
   }
 
   destroy() {
