@@ -26,11 +26,24 @@ export default function App() {
       Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: 0, }, 225, 0, Math.PI, "blue");
       Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: canvas.height }, 225, Math.PI, 0, "blue");
 
-      player.update(keyboard, mouse, ball);
-      ball.draw(ctx, player);
+      player.update(keyboard, mouse);
 
-      player.draw(ctx);
-      ball.update(player);
+      if (player.isTouching(ball)) {
+        ball.follow(player);
+      }
+
+      const strength = player.getShotStrength();
+      if (strength !== 0) {
+        ball.shoot(strength, player);
+      }
+
+      if (player.getPosition().z > 0) {
+        player.draw(ctx);
+        ball.draw(ctx, player);
+      } else {
+        ball.draw(ctx, player);
+        player.draw(ctx);
+      }
 
       animationId = requestAnimationFrame(loop);
     }

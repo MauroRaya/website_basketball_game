@@ -7,8 +7,12 @@ export class Player {
   private position: Vector3D;
   private velocity: Vector3D = { x: 0, y: 0, z: 0 };
   private direction: Vector2D = { x: 0, y: 0 };
-  private hasBall: boolean = false;
   private gravity: number = -0.3;
+
+  private isCharging: boolean = false;
+  private shotStartTime: number = 0;
+  private shotStrength: number = 0;
+
   private radius: number;
   private color: string;
 
@@ -30,18 +34,11 @@ export class Player {
     return this.radius;
   }
 
-  getHasBall(): boolean {
-    return this.hasBall;
+  getShotStrength(): number {
+    return this.shotStrength;
   }
 
-  update(keyboard: Keyboard, mouse: Mouse, ball: Ball) {
-    this.handleIsTouchingBall(ball);
-    this.handleJump(keyboard);
-    this.handleDirection(mouse);
-    this.handleMovement(keyboard);
-  }
-
-  private handleIsTouchingBall(ball: Ball) {
+  isTouching(ball: Ball): boolean {
     const { x: bx, y: by } = ball.getPosition();
     const { x, y } = this.position;
 
@@ -50,9 +47,38 @@ export class Player {
     
     const mag = Math.hypot(dx, dy);
 
-    if (mag < this.radius + ball.getRadius()) {
-      this.hasBall = true;
-    }
+    return mag < this.radius + ball.getRadius();
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    const { x, y, z } = this.position;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y - z, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.restore();
+
+    if (z === 0) return;
+
+    const scale = Math.max(0.4, 1 - y / 100);
+    const shadowRadiusX = this.radius * 0.8;
+    const shadowRadiusY = this.radius * scale;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(x, y, shadowRadiusX, shadowRadiusY, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    ctx.fill();
+    ctx.restore();
+  }
+
+  update(keyboard: Keyboard, mouse: Mouse) {
+    this.handleMovement(keyboard);
+    this.handleDirection(mouse);
+    this.handleShooting(mouse);
+    this.handleJump(keyboard);
   }
 
   private handleDirection(mouse: Mouse) {
@@ -89,31 +115,24 @@ export class Player {
       this.position.z += this.velocity.z;
     } else {
       this.position.z = 0;
-      this.velocity.z = 0;
+      this.velocity.z = 0; 
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
-    const { x, y, z } = this.position;
+  private handleShooting(mouse: Mouse) {
+    const min = 400; //ms
+    const max = 1200; //ms
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(x, y - z, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = this.color;
-    ctx.fill();
-    ctx.restore();
+    if (mouse.getIsDown() && !this.isCharging) {
+      this.isCharging = true;
+      this.shotStartTime = performance.now();
+    }
 
-    if (z === 0) return;
-
-    const scale = Math.max(0.4, 1 - y / 100);
-    const shadowRadiusX = this.radius * 0.8;
-    const shadowRadiusY = this.radius * scale;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.ellipse(x, y, shadowRadiusX, shadowRadiusY, 0, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-    ctx.fill();
-    ctx.restore();
+    if (!mouse.getIsDown() && this.isCharging) {
+        this.isCharging = false;
+        const duration = performance.now() - this.shotStartTime;
+        const clamped = Math.min(Math.max(duration, min), max);
+        this.shotStrength = (clamped - min) / (max - min);
+    }
   }
 }

@@ -20,18 +20,19 @@ export class Ball {
     return this.radius;
   }
 
-  update(player: Player) {
-    this.handleFollow(player);
-  }
-
-  private handleFollow(player: Player) {
-    if (!player.getHasBall()) return;
-
+  follow(player: Player) {
     let { x: px, y: py } = player.getPosition();
     let { x: pdx, y: pdy } = player.getDirection();
 
     this.position.x = px + pdx * 20;
     this.position.y = py + pdy * 20;
+  }
+
+  shoot(strength: number, player: Player) {
+    const { x: dx, y: dy } = player.getDirection();
+
+    this.position.x += 20 * strength * dx;
+    this.position.y += 20 * strength * dy;
   }
 
   draw(ctx: CanvasRenderingContext2D, player: Player) {
