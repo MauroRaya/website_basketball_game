@@ -27,6 +27,7 @@ export default function App() {
       Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: canvas.height }, 225, Math.PI, 0, "blue");
 
       player.update(keyboard, mouse);
+      ball.update();
 
       if (player.isTouching(ball)) {
         ball.follow(player);
@@ -37,7 +38,10 @@ export default function App() {
         ball.shoot(strength, player);
       }
 
-      if (player.getPosition().z > 0) {
+      if (player.getPosition().z > 0 && !player.isTouching(ball)) {
+        ball.draw(ctx, player);
+        player.draw(ctx);
+      } else if (player.getPosition().z > 0) {
         player.draw(ctx);
         ball.draw(ctx, player);
       } else {
