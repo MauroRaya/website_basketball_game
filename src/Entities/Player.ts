@@ -11,9 +11,6 @@ export class Player {
   private speed: number = 3;
   private gravity: number = -0.3;
 
-  private shotPower: number = 0;
-  private shotHeight: number = 0;
-
   private hasBall: boolean = false;
   private isShooting: boolean = false;
 
@@ -62,15 +59,14 @@ export class Player {
     return mag < this.radius + ball.getRadius();
   }
 
-  canGrab(ball: Ball): boolean {
+  attemptGrab(ball: Ball) {
     if (!this.isShooting && this.isTouching(ball)) {
       this.hasBall = true;
-      return true;
+      ball.follow(this);
     }
-    return false;
   }
 
-  canShoot(mouse: Mouse): boolean {
+  attemptShoot(ball: Ball, mouse: Mouse) {
     if (
       !this.hasBall || 
       mouse.getHoldStartTime() === null || 
@@ -78,13 +74,14 @@ export class Player {
     ) return false;
 
     const duration = mouse.getHoldDuration();
-    this.shotPower = this.calculateShotPower(duration);
-    this.shotHeight = this.calculateShotHeight(this.shotPower);
+    const power = this.calculateShotPower(duration);
+    const height = this.calculateShotHeight(power);
 
     this.isShooting = true;
     this.hasBall = false;
 
-    return true;
+    ball.shoot(power, height, this);
+    mouse.clearHold();
   }
 
   private calculateShotPower(duration: number): number {

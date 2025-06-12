@@ -25,21 +25,8 @@ export default function App() {
       Utils.Draw.court(ctx, canvas);
 
       player.update(keyboard, mouse);
-
-      if (player.canGrab(ball)) {
-        ball.follow(player);
-      }
-
-      if (player.canShoot(mouse)) {
-        const power = player.getShotPower();
-        const height = player.getShotHeight();
-
-        if (power === 0 || height === 0) return;
-
-        ball.shoot(power, height, player);
-        mouse.clearHold();
-      }
-
+      player.attemptGrab(ball); // will grab if conditions are true
+      player.attemptShoot(ball, mouse) // will shoot if conditions are true
       ball.update();
 
       if (player.getPosition().z > 0 && !player.isTouching(ball)) {
