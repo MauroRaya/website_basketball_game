@@ -7,7 +7,6 @@ export class Ball {
 
   private gravity: number = -0.4;
   private friction: number = 0.95;
-  private velocityThreshold: number = 0.25;
 
   private radius: number;
   private color: string;
@@ -31,6 +30,8 @@ export class Ball {
   }
 
   follow(player: Player) {
+    if (!player.getHasBall()) return; 
+
     let { x: px, y: py } = player.getPosition();
     let { x: pdx, y: pdy } = player.getDirection();
 
@@ -72,7 +73,6 @@ export class Ball {
   }
 
   shoot(power: number, height: number, player: Player) {
-    player.setIsShooting(true);
     this.velocity.x += power * player.getDirection().x;
     this.velocity.y += power * player.getDirection().y;
     this.velocity.z = height;
@@ -91,11 +91,11 @@ export class Ball {
     this.velocity.x *= this.friction;
     this.velocity.y *= this.friction;
 
-    if (Math.abs(this.velocity.x) < this.velocityThreshold) {
+    if (Math.abs(this.velocity.x) < 0.25) {
       this.velocity.x = 0;
     }
 
-    if (Math.abs(this.velocity.y) < this.velocityThreshold) {
+    if (Math.abs(this.velocity.y) < 0.25) {
       this.velocity.y = 0;
     }
 

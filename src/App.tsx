@@ -18,19 +18,26 @@ export default function App() {
     const ball = new Ball({ x: 300, y: 350, z: 0 }, 12, "red");
 
     const keyboard = new Keyboard();
-    const mouse = new Mouse(canvas, ball, player);
+    const mouse = new Mouse(canvas);
 
     const loop = () => {
-      Utils.Draw.clear(ctx, canvas, "white");
-
-      Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: 0, }, 225, 0, Math.PI, "blue");
-      Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: canvas.height }, 225, Math.PI, 0, "blue");
+      Utils.Draw.clear(ctx, canvas);
+      Utils.Draw.court(ctx, canvas);
 
       player.update(keyboard, mouse);
 
-      if (player.isTouching(ball) && !player.getIsShooting()) {
+      if (player.canGrab(ball)) {
         ball.follow(player);
-        player.setHasBall(true);
+      }
+
+      if (player.canShoot(mouse)) {
+        const power = player.getShotPower();
+        const height = player.getShotHeight();
+
+        if (power === 0 || height === 0) return;
+
+        ball.shoot(power, height, player);
+        mouse.clearHold();
       }
 
       ball.update();

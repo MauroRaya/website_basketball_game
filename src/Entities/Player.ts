@@ -9,8 +9,10 @@ export class Player {
   private direction: Vector2D = { x: 0, y: 0 };
 
   private speed: number = 3;
-  private jumpStrength: number = 5; // will probably disappear
   private gravity: number = -0.3;
+
+  private shotPower: number = 0;
+  private shotHeight: number = 0;
 
   private hasBall: boolean = false;
   private isShooting: boolean = false;
@@ -36,16 +38,12 @@ export class Player {
     return this.hasBall;
   }
 
-  setHasBall(value: boolean) {
-    this.hasBall = value;
+  getShotPower(): number {
+    return this.shotPower;
   }
 
-  getIsShooting(): boolean {
-    return this.isShooting;
-  }
-
-  setIsShooting(value: boolean) {
-    this.isShooting = value;
+  getShotHeight(): number {
+    return this.shotHeight;
   }
 
   getRadius(): number {
@@ -62,6 +60,40 @@ export class Player {
     const mag = Math.hypot(dx, dy);
 
     return mag < this.radius + ball.getRadius();
+  }
+
+  canGrab(ball: Ball): boolean {
+    if (!this.isShooting && this.isTouching(ball)) {
+      this.hasBall = true;
+      return true;
+    }
+    return false;
+  }
+
+  canShoot(mouse: Mouse): boolean {
+    if (
+      !this.hasBall || 
+      mouse.getHoldStartTime() === null || 
+      mouse.getHoldEndTime() === null
+    ) return false;
+
+    const duration = mouse.getHoldDuration();
+    this.shotPower = this.calculateShotPower(duration);
+    this.shotHeight = this.calculateShotHeight(this.shotPower);
+
+    this.isShooting = true;
+    this.hasBall = false;
+
+    return true;
+  }
+
+  private calculateShotPower(duration: number): number {
+    const clamped = Math.min(1000, Math.max(0, duration));
+    return clamped / 1000 * (32 - 8) + 8;
+  }
+
+  private calculateShotHeight(power: number): number {
+    return (power - 8) / (32 - 8) * (16 - 6) + 6;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -133,7 +165,7 @@ export class Player {
 
   private handleJump(keyboard: Keyboard) {
     if (keyboard.isPressed(" ") && this.position.z === 0) {
-      this.velocity.z = this.jumpStrength;
+      this.velocity.z = 5;
       this.position.z += this.velocity.z;
     }
     

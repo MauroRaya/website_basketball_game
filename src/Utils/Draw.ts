@@ -4,10 +4,15 @@ export class Draw {
   static clear(
     ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
-    color: string
+    color: string = "white"
   ) {
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  static court(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+    this.halfCircle(ctx, { x: canvas.width / 2, y: 0, }, 225, 0, Math.PI, "blue");
+    this.halfCircle(ctx, { x: canvas.width / 2, y: canvas.height }, 225, Math.PI, 0, "blue");
   }
 
   static halfCircle(
