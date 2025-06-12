@@ -9,9 +9,11 @@ export class Player {
   private direction: Vector2D = { x: 0, y: 0 };
 
   private speed: number = 3;
-  private jumpStrength: number = 5;
+  private jumpStrength: number = 5; // will probably disappear
   private gravity: number = -0.3;
+
   private hasBall: boolean = false;
+  private isShooting: boolean = false;
 
   private radius: number;
   private color: string;
@@ -36,6 +38,14 @@ export class Player {
 
   setHasBall(value: boolean) {
     this.hasBall = value;
+  }
+
+  getIsShooting(): boolean {
+    return this.isShooting;
+  }
+
+  setIsShooting(value: boolean) {
+    this.isShooting = value;
   }
 
   getRadius(): number {
@@ -124,14 +134,12 @@ export class Player {
   private handleJump(keyboard: Keyboard) {
     if (keyboard.isPressed(" ") && this.position.z === 0) {
       this.velocity.z = this.jumpStrength;
-
       this.position.z += this.velocity.z;
-      this.velocity.z += this.gravity;
     }
     
     if (this.position.z > 0) {
-      this.position.z += this.velocity.z;
       this.velocity.z += this.gravity;
+      this.position.z += this.velocity.z;
     } else {
       this.position.z = 0;
       this.velocity.z = 0; 

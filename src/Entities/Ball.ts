@@ -4,6 +4,11 @@ import type { Player } from "./Player";
 export class Ball {
   private position: Vector3D;
   private velocity: Vector3D = { x: 0, y: 0, z: 0 };
+
+  private gravity: number = -0.4;
+  private friction: number = 0.95;
+  private velocityThreshold: number = 0.25;
+
   private radius: number;
   private color: string;
 
@@ -66,33 +71,35 @@ export class Ball {
     ctx.restore();
   }
 
-  shoot(power: number, player: Player) {
+  shoot(power: number, height: number, player: Player) {
+    player.setIsShooting(true);
     this.velocity.x += power * player.getDirection().x;
     this.velocity.y += power * player.getDirection().y;
-
-    this.velocity.z += power;
+    this.velocity.z = height;
     this.position.z += this.velocity.z;
   }
 
-  update(player: Player) {
-    const friction = -0.4;
-
-    if (this.velocity.z > 0) {
-      this.velocity.x += friction * player.getDirection().x;
-      this.position.x += this.velocity.x;
-
-      this.velocity.y += friction * player.getDirection().y;
-      this.position.y += this.velocity.y;
-
-      this.velocity.z += friction;
+  update() {
+    if (this.position.z > 0) {
+      this.velocity.z += this.gravity;
       this.position.z += this.velocity.z;
     } else {
-      this.velocity.x = 0;
-      this.velocity.y = 0;
-      this.velocity.z = 0;
       this.position.z = 0;
+      this.velocity.z = 0;
     }
 
-    console.log(this.velocity);
+    this.velocity.x *= this.friction;
+    this.velocity.y *= this.friction;
+
+    if (Math.abs(this.velocity.x) < this.velocityThreshold) {
+      this.velocity.x = 0;
+    }
+
+    if (Math.abs(this.velocity.y) < this.velocityThreshold) {
+      this.velocity.y = 0;
+    }
+
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
   }
 }

@@ -33,17 +33,23 @@ export class Mouse {
     const minChargeTime = 0;
     const maxChargeTime = 1000;
 
-    const minShotPower = 10;
-    const maxShotPower = 20;
+    const minShotPower = 8;
+    const maxShotPower = 32;
+
+    const minShotHeight = 6;
+    const maxShotHeight = 16;
 
     const pressDuration = performance.now() - this.startHoldTime;
 
     const clampedTime = Math.min(maxChargeTime, Math.max(minChargeTime, pressDuration));
 
     const chargeFraction = (clampedTime - minChargeTime) / (maxChargeTime - minChargeTime);
-    const shotPower = chargeFraction * (maxShotPower - minShotPower) + minShotPower;
+    const power = chargeFraction * (maxShotPower - minShotPower) + minShotPower;
 
-    this.ball.shoot(shotPower, this.player);
+    const powerFraction = (power - minShotPower) / (maxShotPower - minShotPower);
+    const height = powerFraction * (maxShotHeight - minShotHeight) + minShotHeight;
+
+    this.ball.shoot(power, height, this.player);
   };
 
   getPosition(): Vector2D {

@@ -28,12 +28,12 @@ export default function App() {
 
       player.update(keyboard, mouse);
 
-      if (player.isTouching(ball)) {
+      if (player.isTouching(ball) && !player.getIsShooting()) {
         ball.follow(player);
         player.setHasBall(true);
       }
 
-      ball.update(player);
+      ball.update();
 
       if (player.getPosition().z > 0 && !player.isTouching(ball)) {
         ball.draw(ctx, player);
