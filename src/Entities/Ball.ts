@@ -6,7 +6,8 @@ export class Ball {
   private velocity: Vector3D = { x: 0, y: 0, z: 0 };
 
   private gravity: number = -0.4;
-  private friction: number = 0.95;
+  private friction: number = 0.94;
+  private lastShooter: Player | null = null;
 
   private radius: number;
   private color: string;
@@ -38,6 +39,13 @@ export class Ball {
     this.position.x = px + pdx * 20;
     this.position.y = py + pdy * 20;
   }
+
+  canGetGrabbedBy(player: Player): boolean {
+    if (this.lastShooter === player) {
+      return false;
+    }
+    return true;
+  }
   
   draw(ctx: CanvasRenderingContext2D, player: Player) {
     const { x, y, z } = this.position;
@@ -45,16 +53,18 @@ export class Ball {
 
     let height = y;
 
-    if (player.isTouching(this)) {
-      height -= pz;
+    if (player.getHasBall() && pz > 0) {
+      height = y - pz;
     }
 
-    if (this.position.z > 0) {
-      height -= z - 30;
+    if (z > 0) {
+      const exaggeration = 2;
+      height = y - z * exaggeration;
 
       const scale = Math.max(0.4, 1 - z / 100);
-      const shadowRadiusX = this.radius * 0.8;
-      const shadowRadiusY = this.radius * scale;
+
+      const shadowRadiusX = this.radius * scale * 0.8;
+      const shadowRadiusY = this.radius * scale * 0.5;
 
       ctx.save();
       ctx.beginPath();
@@ -77,25 +87,27 @@ export class Ball {
     this.velocity.y += power * player.getDirection().y;
     this.velocity.z = height;
     this.position.z += this.velocity.z;
+    this.lastShooter = player;
   }
 
   update() {
-    if (this.position.z > 0) {
+    if (this.position.z > 0.05) {
       this.velocity.z += this.gravity;
       this.position.z += this.velocity.z;
     } else {
-      this.position.z = 0;
-      this.velocity.z = 0;
+      this.position.z = -this.position.z * 0.6;
+      this.velocity.z = -this.velocity.z * 0.6;
+      this.lastShooter = null;
     }
 
     this.velocity.x *= this.friction;
     this.velocity.y *= this.friction;
 
-    if (Math.abs(this.velocity.x) < 0.25) {
+    if (Math.abs(this.velocity.x) < 0.05) {
       this.velocity.x = 0;
     }
 
-    if (Math.abs(this.velocity.y) < 0.25) {
+    if (Math.abs(this.velocity.y) < 0.05) {
       this.velocity.y = 0;
     }
 

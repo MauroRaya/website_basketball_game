@@ -10,9 +10,7 @@ export class Player {
 
   private speed: number = 3;
   private gravity: number = -0.3;
-
   private hasBall: boolean = false;
-  private isShooting: boolean = false;
 
   private radius: number;
   private color: string;
@@ -52,7 +50,10 @@ export class Player {
   }
 
   attemptGrab(ball: Ball) {
-    if (!this.isShooting && this.isTouching(ball)) {
+    if (
+      this.isTouching(ball) &&
+      ball.canGetGrabbedBy(this)
+    ) {
       this.hasBall = true;
       ball.follow(this);
     }
@@ -69,20 +70,19 @@ export class Player {
     const power = this.calculateShotPower(duration);
     const height = this.calculateShotHeight(power);
 
-    this.isShooting = true;
+    ball.shoot(power, height, this);
     this.hasBall = false;
 
-    ball.shoot(power, height, this);
     mouse.clearHold();
   }
 
   private calculateShotPower(duration: number): number {
     const clamped = Math.min(1000, Math.max(0, duration));
-    return clamped / 1000 * (32 - 8) + 8;
+    return clamped / 1200 * (25 - 5) + 8;
   }
 
   private calculateShotHeight(power: number): number {
-    return (power - 8) / (32 - 8) * (16 - 6) + 6;
+    return (power - 8) / (25 - 5) * (8 - 3) + 3;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
