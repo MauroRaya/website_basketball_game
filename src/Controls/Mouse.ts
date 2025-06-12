@@ -1,10 +1,18 @@
+import type { Ball } from "../Entities/Ball";
+import type { Player } from "../Entities/Player";
 import type { Vector2D } from "../Types/Vector";
 
 export class Mouse {
   private position: Vector2D = { x: 0, y: 0 };
-  private isDown: boolean = false;
+  private startHoldTime: number = 0;
 
-  constructor(canvas: HTMLCanvasElement) {
+  private ball: Ball;
+  private player: Player
+
+  constructor(canvas: HTMLCanvasElement, ball: Ball, player: Player) {
+    this.ball = ball;
+    this.player = player;
+
     canvas.addEventListener("mousemove", this.mouseMove);
     canvas.addEventListener("mousedown", this.mouseDown);
     canvas.addEventListener("mouseup", this.mouseUp);
@@ -13,22 +21,33 @@ export class Mouse {
   private mouseMove = (e: MouseEvent) => {
     this.position.x = e.x;
     this.position.y = e.y;
-  }
+  };
 
   private mouseDown = () => {
-    this.isDown = true;
-  }
+    this.startHoldTime = performance.now();
+  };
 
   private mouseUp = () => {
-    this.isDown = false;
-  }
+    if (!this.player.getHasBall()) return;
+
+    const minChargeTime = 0;
+    const maxChargeTime = 1000;
+
+    const minShotPower = 10;
+    const maxShotPower = 20;
+
+    const pressDuration = performance.now() - this.startHoldTime;
+
+    const clampedTime = Math.min(maxChargeTime, Math.max(minChargeTime, pressDuration));
+
+    const chargeFraction = (clampedTime - minChargeTime) / (maxChargeTime - minChargeTime);
+    const shotPower = chargeFraction * (maxShotPower - minShotPower) + minShotPower;
+
+    this.ball.shoot(shotPower, this.player);
+  };
 
   getPosition(): Vector2D {
-    return {...this.position};
-  }
-
-  getIsDown(): boolean {
-    return this.isDown;
+    return { ...this.position };
   }
 
   destroy(canvas: HTMLCanvasElement) {

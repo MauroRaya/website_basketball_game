@@ -14,11 +14,11 @@ export default function App() {
 
     let animationId: number;
 
-    const keyboard = new Keyboard();
-    const mouse = new Mouse(canvas);
-
     const player = new Player({ x: 300, y: 400, z: 0 }, 16, "blue");
     const ball = new Ball({ x: 300, y: 350, z: 0 }, 12, "red");
+
+    const keyboard = new Keyboard();
+    const mouse = new Mouse(canvas, ball, player);
 
     const loop = () => {
       Utils.Draw.clear(ctx, canvas, "white");
@@ -27,16 +27,13 @@ export default function App() {
       Utils.Draw.halfCircle(ctx, { x: canvas.width / 2, y: canvas.height }, 225, Math.PI, 0, "blue");
 
       player.update(keyboard, mouse);
-      ball.update();
 
       if (player.isTouching(ball)) {
         ball.follow(player);
+        player.setHasBall(true);
       }
 
-      const strength = player.getShotStrength();
-      if (strength !== 0) {
-        ball.shoot(strength, player);
-      }
+      ball.update(player);
 
       if (player.getPosition().z > 0 && !player.isTouching(ball)) {
         ball.draw(ctx, player);

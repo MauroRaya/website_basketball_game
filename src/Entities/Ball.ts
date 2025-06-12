@@ -4,7 +4,6 @@ import type { Player } from "./Player";
 export class Ball {
   private position: Vector3D;
   private velocity: Vector3D = { x: 0, y: 0, z: 0 };
-  private inMidShot: boolean = false;
   private radius: number;
   private color: string;
 
@@ -18,12 +17,12 @@ export class Ball {
     return {...this.position};
   }
 
-  getRadius(): number {
-    return this.radius;
+  getVelocity(): Vector3D {
+    return {...this.velocity};
   }
 
-  getInMidShot(): boolean {
-    return this.inMidShot;
+  getRadius(): number {
+    return this.radius;
   }
 
   follow(player: Player) {
@@ -33,27 +32,31 @@ export class Ball {
     this.position.x = px + pdx * 20;
     this.position.y = py + pdy * 20;
   }
-
-  // fix deceleration
-  shoot(strength: number, player: Player) {
-    this.inMidShot = true;
-
-    const { x: dx, y: dy } = player.getDirection();
-
-    this.velocity.x += 2 * strength * dx;
-    this.velocity.y += 2 * strength * dy;
-
-    const friction = 0.8;
-
-    this.velocity.x *= friction;
-    this.velocity.y *= friction;
-  }
-
+  
   draw(ctx: CanvasRenderingContext2D, player: Player) {
-    const { x, y } = this.position;
+    const { x, y, z } = this.position;
     const { z: pz } = player.getPosition();
 
-    const height = player.isTouching(this) ? y - pz : y;
+    let height = y;
+
+    if (player.isTouching(this)) {
+      height -= pz;
+    }
+
+    if (this.position.z > 0) {
+      height -= z - 30;
+
+      const scale = Math.max(0.4, 1 - z / 100);
+      const shadowRadiusX = this.radius * 0.8;
+      const shadowRadiusY = this.radius * scale;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(x, y, shadowRadiusX, shadowRadiusY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      ctx.fill();
+      ctx.restore();
+    }
 
     ctx.save();
     ctx.beginPath();
@@ -63,13 +66,33 @@ export class Ball {
     ctx.restore();
   }
 
-  update() {
-    this.handlePosition();
+  shoot(power: number, player: Player) {
+    this.velocity.x += power * player.getDirection().x;
+    this.velocity.y += power * player.getDirection().y;
+
+    this.velocity.z += power;
+    this.position.z += this.velocity.z;
   }
 
-  private handlePosition() {
-    this.position.x += this.velocity.x;
-    this.position.y += this.velocity.y;
-    this.position.z += this.velocity.z;
+  update(player: Player) {
+    const friction = -0.4;
+
+    if (this.velocity.z > 0) {
+      this.velocity.x += friction * player.getDirection().x;
+      this.position.x += this.velocity.x;
+
+      this.velocity.y += friction * player.getDirection().y;
+      this.position.y += this.velocity.y;
+
+      this.velocity.z += friction;
+      this.position.z += this.velocity.z;
+    } else {
+      this.velocity.x = 0;
+      this.velocity.y = 0;
+      this.velocity.z = 0;
+      this.position.z = 0;
+    }
+
+    console.log(this.velocity);
   }
 }

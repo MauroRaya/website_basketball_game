@@ -7,11 +7,11 @@ export class Player {
   private position: Vector3D;
   private velocity: Vector3D = { x: 0, y: 0, z: 0 };
   private direction: Vector2D = { x: 0, y: 0 };
-  private gravity: number = -0.3;
 
-  private isCharging: boolean = false;
-  private shotStartTime: number = 0;
-  private shotStrength: number = 0;
+  private speed: number = 3;
+  private jumpStrength: number = 5;
+  private gravity: number = -0.3;
+  private hasBall: boolean = false;
 
   private radius: number;
   private color: string;
@@ -30,12 +30,16 @@ export class Player {
     return {...this.direction};
   }
 
-  getRadius(): number {
-    return this.radius;
+  getHasBall(): boolean {
+    return this.hasBall;
   }
 
-  getShotStrength(): number {
-    return this.shotStrength;
+  setHasBall(value: boolean) {
+    this.hasBall = value;
+  }
+
+  getRadius(): number {
+    return this.radius;
   }
 
   isTouching(ball: Ball): boolean {
@@ -77,8 +81,30 @@ export class Player {
   update(keyboard: Keyboard, mouse: Mouse) {
     this.handleMovement(keyboard);
     this.handleDirection(mouse);
-    this.handleShooting(mouse);
     this.handleJump(keyboard);
+  }
+
+  private handleMovement(keyboard: Keyboard) {
+    let dx = 0;
+    let dy = 0;
+
+    if (keyboard.isPressed("w")) dy -= 3;
+    if (keyboard.isPressed("a")) dx -= 3;
+    if (keyboard.isPressed("s")) dy += 3;
+    if (keyboard.isPressed("d")) dx += 3;
+
+    const mag = Math.hypot(dx, dy);
+    if (mag === 0) return;
+
+    const speed = this.velocity.z > 0
+      ? this.speed - 1
+      : this.speed
+
+    this.velocity.x = speed * (dx / mag);
+    this.velocity.y = speed * (dy / mag);
+
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
   }
 
   private handleDirection(mouse: Mouse) {
@@ -95,44 +121,20 @@ export class Player {
     this.direction.y = dy / mag;
   }
 
-  private handleMovement(keyboard: Keyboard) {
-    if (keyboard.isPressed("w")) this.position.y -= 3;
-    if (keyboard.isPressed("a")) this.position.x -= 3;
-    if (keyboard.isPressed("s")) this.position.y += 3;
-    if (keyboard.isPressed("d")) this.position.x += 3;
-  }
-
   private handleJump(keyboard: Keyboard) {
     if (keyboard.isPressed(" ") && this.position.z === 0) {
-      this.velocity.z = 6;
+      this.velocity.z = this.jumpStrength;
 
-      this.velocity.z += this.gravity;
       this.position.z += this.velocity.z;
+      this.velocity.z += this.gravity;
     }
     
     if (this.position.z > 0) {
-      this.velocity.z += this.gravity;
       this.position.z += this.velocity.z;
+      this.velocity.z += this.gravity;
     } else {
       this.position.z = 0;
       this.velocity.z = 0; 
-    }
-  }
-
-  private handleShooting(mouse: Mouse) {
-    const min = 400; //ms
-    const max = 1200; //ms
-
-    if (mouse.getIsDown() && !this.isCharging) {
-      this.isCharging = true;
-      this.shotStartTime = performance.now();
-    }
-
-    if (!mouse.getIsDown() && this.isCharging) {
-        this.isCharging = false;
-        const duration = performance.now() - this.shotStartTime;
-        const clamped = Math.min(Math.max(duration, min), max);
-        this.shotStrength = (clamped - min) / (max - min);
     }
   }
 }
