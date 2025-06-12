@@ -25,8 +25,8 @@ export default function App() {
       Utils.Draw.court(ctx, canvas);
 
       player.update(keyboard, mouse);
-      player.attemptGrab(ball); // will grab if conditions are true
-      player.attemptShoot(ball, mouse) // will shoot if conditions are true
+      player.attemptGrab(ball);
+      player.attemptShoot(ball, mouse);
       ball.update();
 
       if (player.getPosition().z > 0 && !player.isTouching(ball)) {

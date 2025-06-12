@@ -35,14 +35,6 @@ export class Player {
     return this.hasBall;
   }
 
-  getShotPower(): number {
-    return this.shotPower;
-  }
-
-  getShotHeight(): number {
-    return this.shotHeight;
-  }
-
   getRadius(): number {
     return this.radius;
   }
