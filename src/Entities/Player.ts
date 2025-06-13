@@ -49,13 +49,14 @@ export class Player {
     return mag < this.radius + ball.getRadius();
   }
 
-  attemptGrab(ball: Ball) {
+  attemptGrab(ball: Ball, mouse: Mouse) {
     if (
+      !this.hasBall &&
       this.isTouching(ball) &&
       ball.canGetGrabbedBy(this)
     ) {
       this.hasBall = true;
-      ball.follow(this);
+      mouse.clearHold();
     }
   }
 
@@ -109,9 +110,14 @@ export class Player {
     ctx.restore();
   }
 
-  update(keyboard: Keyboard, mouse: Mouse) {
+  update(keyboard: Keyboard, mouse: Mouse, ball: Ball) {
     this.handleMovement(keyboard);
     this.handleDirection(mouse);
+
+    if (this.hasBall) {
+      ball.follow(this);
+    }
+
     this.handleJump(keyboard);
   }
 
@@ -119,10 +125,10 @@ export class Player {
     let dx = 0;
     let dy = 0;
 
-    if (keyboard.isPressed("w")) dy -= 3;
-    if (keyboard.isPressed("a")) dx -= 3;
-    if (keyboard.isPressed("s")) dy += 3;
-    if (keyboard.isPressed("d")) dx += 3;
+    if (keyboard.isPressed("w")) dy -= 1;
+    if (keyboard.isPressed("a")) dx -= 1;
+    if (keyboard.isPressed("s")) dy += 1;
+    if (keyboard.isPressed("d")) dx += 1;
 
     const mag = Math.hypot(dx, dy);
     if (mag === 0) return;

@@ -31,4 +31,22 @@ export class Draw {
     ctx.stroke();
     ctx.restore();
   }
+
+  static line(
+    ctx: CanvasRenderingContext2D,
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    color: string
+  ) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.restore();
+  }
 }

@@ -24,8 +24,8 @@ export default function App() {
       Utils.Draw.clear(ctx, canvas);
       Utils.Draw.court(ctx, canvas);
 
-      player.update(keyboard, mouse);
-      player.attemptGrab(ball);
+      player.update(keyboard, mouse, ball);
+      player.attemptGrab(ball, mouse);
       player.attemptShoot(ball, mouse);
       ball.update();
 
@@ -39,6 +39,10 @@ export default function App() {
         ball.draw(ctx, player);
         player.draw(ctx);
       }
+
+      const { x: px, y: py } = player.getPosition();
+      const { x: pdx, y: pdy } = player.getDirection();
+      Utils.Draw.line(ctx, px, py, px + pdx * 50, py + pdy * 50, "black");
 
       animationId = requestAnimationFrame(loop);
     }

@@ -101,7 +101,7 @@ export class Ball {
   }
 
   update() {
-    if (this.position.z > 0.05) {
+    if (this.position.z > 0.04) {
       this.velocity.z += this.gravity;
       this.position.z += this.velocity.z;
     } else {
