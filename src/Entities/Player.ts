@@ -64,7 +64,7 @@ export class Player {
       !this.hasBall || 
       mouse.getHoldStartTime() === null || 
       mouse.getHoldEndTime() === null
-    ) return false;
+    ) return;
 
     const duration = mouse.getHoldDuration();
     const power = this.calculateShotPower(duration);
@@ -78,11 +78,11 @@ export class Player {
 
   private calculateShotPower(duration: number): number {
     const clamped = Math.min(1000, Math.max(0, duration));
-    return clamped / 1200 * (25 - 5) + 8;
+    return clamped / 1200 * (30 - 5) + 8;
   }
 
   private calculateShotHeight(power: number): number {
-    return (power - 8) / (25 - 5) * (8 - 3) + 3;
+    return (power - 8) / (30 - 5) * (8 - 3) + 3;
   }
 
   draw(ctx: CanvasRenderingContext2D) {

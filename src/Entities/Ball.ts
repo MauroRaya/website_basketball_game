@@ -33,11 +33,21 @@ export class Ball {
   follow(player: Player) {
     if (!player.getHasBall()) return; 
 
-    let { x: px, y: py } = player.getPosition();
-    let { x: pdx, y: pdy } = player.getDirection();
+    const offset = 18;
+    const smoothnessFactor = 0.3;
 
-    this.position.x = px + pdx * 20;
-    this.position.y = py + pdy * 20;
+    const { x, y } = this.position;
+    const { x: px, y: py } = player.getPosition();
+    const { x: pdx, y: pdy } = player.getDirection();
+
+    const targetX = px + pdx * offset;
+    const targetY = py + pdy * offset;
+
+    this.position.x += (targetX - x) * smoothnessFactor;
+    this.position.y += (targetY - y) * smoothnessFactor;
+
+    this.position.z = 0;
+    this.velocity.z = 0;
   }
 
   canGetGrabbedBy(player: Player): boolean {
