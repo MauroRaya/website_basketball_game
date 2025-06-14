@@ -25,16 +25,11 @@ export default function App() {
       Utils.Draw.court(ctx, canvas);
 
       player.update(keyboard, mouse, ball);
-      player.attemptGrab(ball, mouse);
-      player.attemptShoot(ball, mouse);
       ball.update();
 
-      if (player.getPosition().z > 0 && !player.isTouching(ball)) {
-        ball.draw(ctx, player);
-        player.draw(ctx);
-      } else if (player.getPosition().z > 0) {
-        player.draw(ctx);
-        ball.draw(ctx, player);
+      if (player.getIsChargingShot()) {
+          player.draw(ctx);
+          ball.draw(ctx, player);
       } else {
         ball.draw(ctx, player);
         player.draw(ctx);

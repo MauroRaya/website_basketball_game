@@ -1,4 +1,4 @@
-import type { Keyboard } from "../Controls/Keyboard";
+import { Keyboard } from "../Controls/Keyboard";
 import type { Mouse } from "../Controls/Mouse";
 import type { Vector2D, Vector3D } from "../Types/Vector";
 import type { Ball } from "./Ball";
@@ -8,9 +8,8 @@ export class Player {
   private velocity: Vector3D = { x: 0, y: 0, z: 0 };
   private direction: Vector2D = { x: 0, y: 0 };
 
-  private speed: number = 3;
-  private gravity: number = -0.3;
   private hasBall: boolean = false;
+  private isChargingShot: boolean = false;
 
   private radius: number;
   private color: string;
@@ -33,57 +32,53 @@ export class Player {
     return this.hasBall;
   }
 
+  getIsChargingShot(): boolean {
+    return this.isChargingShot;
+  }
+
   getRadius(): number {
     return this.radius;
   }
 
-  isTouching(ball: Ball): boolean {
-    const { x: bx, y: by } = ball.getPosition();
-    const { x, y } = this.position;
+  update(keyboard: Keyboard, mouse: Mouse, ball: Ball) {
+    this.handleDirection(mouse);
+    this.handleMovement(keyboard);
 
-    const dx = bx - x;
-    const dy = by - y;
+    if (this.hasBall) {
+      ball.follow(this);
+    } else {
+      if (this.canGrab(ball)) {
+        this.hasBall = true;
+        ball.follow(this);
+        mouse.clearHold();
+      }
+    }
+
+    const holdStartTime = mouse.getHoldStartTime();
+    const holdEndTime = mouse.getHoldEndTime();
+    const holdDuration = mouse.getHoldDuration();
+
+    this.isChargingShot = 
+      keyboard.isPressed("q") ||
+      holdStartTime !== null
     
-    const mag = Math.hypot(dx, dy);
-
-    return mag < this.radius + ball.getRadius();
-  }
-
-  attemptGrab(ball: Ball, mouse: Mouse) {
     if (
-      !this.hasBall &&
-      this.isTouching(ball) &&
-      ball.canGetGrabbedBy(this)
+      this.hasBall &&
+      holdEndTime !== null &&
+      holdDuration !== null
     ) {
-      this.hasBall = true;
+      const power = this.calculateShotPower(holdDuration);
+      const height = this.calculateShotHeight(power);
+
+      ball.shoot(power, height, this);
+
+      this.isChargingShot = false;
+      this.hasBall = false;
+
       mouse.clearHold();
     }
-  }
 
-  attemptShoot(ball: Ball, mouse: Mouse) {
-    if (
-      !this.hasBall || 
-      mouse.getHoldStartTime() === null || 
-      mouse.getHoldEndTime() === null
-    ) return;
-
-    const duration = mouse.getHoldDuration();
-    const power = this.calculateShotPower(duration);
-    const height = this.calculateShotHeight(power);
-
-    ball.shoot(power, height, this);
-    this.hasBall = false;
-
-    mouse.clearHold();
-  }
-
-  private calculateShotPower(duration: number): number {
-    const clamped = Math.min(1000, Math.max(0, duration));
-    return clamped / 1200 * (30 - 5) + 8;
-  }
-
-  private calculateShotHeight(power: number): number {
-    return (power - 8) / (30 - 5) * (8 - 3) + 3;
+    this.handleJump(keyboard);
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -110,15 +105,18 @@ export class Player {
     ctx.restore();
   }
 
-  update(keyboard: Keyboard, mouse: Mouse, ball: Ball) {
-    this.handleMovement(keyboard);
-    this.handleDirection(mouse);
+  private handleDirection(mouse: Mouse) {
+    const { x: mx, y: my } = mouse.getPosition();
+    var { x, y } = this.position;
+    
+    const dx = mx - x;
+    const dy = my - y;
 
-    if (this.hasBall) {
-      ball.follow(this);
-    }
+    const mag = Math.hypot(dx, dy);
+    if (mag === 0) return;
 
-    this.handleJump(keyboard);
+    this.direction.x = dx / mag
+    this.direction.y = dy / mag;
   }
 
   private handleMovement(keyboard: Keyboard) {
@@ -134,28 +132,14 @@ export class Player {
     if (mag === 0) return;
 
     const speed = this.velocity.z > 0
-      ? this.speed - 1
-      : this.speed
+      ? 3 - 1
+      : 3
 
     this.velocity.x = speed * (dx / mag);
     this.velocity.y = speed * (dy / mag);
 
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
-  }
-
-  private handleDirection(mouse: Mouse) {
-    const { x: mx, y: my } = mouse.getPosition();
-    var { x, y } = this.position;
-    
-    const dx = mx - x;
-    const dy = my - y;
-
-    const mag = Math.hypot(dx, dy);
-    if (mag === 0) return;
-
-    this.direction.x = dx / mag
-    this.direction.y = dy / mag;
   }
 
   private handleJump(keyboard: Keyboard) {
@@ -165,11 +149,39 @@ export class Player {
     }
     
     if (this.position.z > 0) {
-      this.velocity.z += this.gravity;
+      this.velocity.z += -0.3;
       this.position.z += this.velocity.z;
     } else {
       this.position.z = 0;
       this.velocity.z = 0; 
     }
+  }
+
+  isTouching(ball: Ball): boolean {
+    const { x: bx, y: by } = ball.getPosition();
+    const { x, y } = this.position;
+
+    const dx = bx - x;
+    const dy = by - y;
+    
+    const mag = Math.hypot(dx, dy);
+
+    return mag < this.radius + ball.getRadius();
+  }
+
+  private canGrab(ball: Ball): boolean {
+    return (
+      this.isTouching(ball) &&
+      ball.canGetGrabbedBy(this)
+    )
+  }
+
+  private calculateShotPower(duration: any): number {
+    const clamped = Math.min(1000, Math.max(0, duration));
+    return clamped / 1200 * (30 - 5) + 8;
+  }
+
+  private calculateShotHeight(power: number): number {
+    return (power - 8) / (30 - 5) * (8 - 3) + 3;
   }
 }

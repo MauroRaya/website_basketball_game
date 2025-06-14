@@ -1,5 +1,7 @@
 export class Keyboard {
   private keys: Record<string, boolean> = {};
+  private holdTimes: Record<string, { start: number | null; end: number | null }> = {};
+  private allowedKeys = ["w", "a", "s", "d", " ", "q", "e"];
 
   constructor() {
     window.addEventListener("keydown", this.keyDown);
@@ -7,19 +9,52 @@ export class Keyboard {
   }
 
   private keyDown = (e: KeyboardEvent) => {
-    this.keys[e.key.toLowerCase()] = true;
+    const key = e.key.toLowerCase();
+    if (!this.allowedKeys.includes(key)) return;
+
+    this.keys[key] = true;
+
+    if (!this.holdTimes[key]) {
+      this.holdTimes[key] = { start: null, end: null };
+    }
+
+    if (this.holdTimes[key].start === null) {
+      this.holdTimes[key].start = performance.now();
+      this.holdTimes[key].end = null;
+    }
   }
 
   private keyUp = (e: KeyboardEvent) => {
-    this.keys[e.key.toLowerCase()] = false;
+    const key = e.key.toLowerCase();
+    this.keys[key] = false;
+
+    if (!this.holdTimes[key]) return;
+    this.holdTimes[key].end = performance.now();
   }
 
-  getKeys(): Record<string, boolean> {
-    return {...this.keys};
+  isPressed(key: string) {
+    return !!this.keys[key];
   }
 
-  isPressed(e: string): boolean {
-    return !!this.keys[e.toLowerCase()];
+  getHoldStartTime(key: string): number | null {
+    return this.holdTimes[key]?.start ?? null;
+  }
+
+  getHoldEndTime(key: string): number | null {
+    return this.holdTimes[key]?.end ?? null;
+  }
+
+  getHoldDuration(key: string): number {
+    const time = this.holdTimes[key];
+    if (!time || time.start === null || time.end === null) return 0;
+    return time.end - time.start;
+  }
+
+  clearHold(key: string) {
+    if (this.holdTimes[key]) {
+      this.holdTimes[key].start = null;
+      this.holdTimes[key].end = null;
+    }
   }
 
   destroy() {
